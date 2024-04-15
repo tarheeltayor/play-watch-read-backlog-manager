@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "play-watch-read-backlog-manager"
+version = "0.1.0"
+description = "CLI for managing and choosing things to play, watch, and read"
+requires-python = ">=3.8"
+dependencies = [
+    "jsonpickle==3.0.4",
+    "jsonschema==4.21.1",
+    "pyyaml==6.0.1",
+    "typer==0.12.3"
+]
+
+[project.scripts]
+pwrblm = "pwrblm.cli:app"
+
+[options.packages.find]
+where = "src"
+
+[tool.setuptools.package-data]
+"pwrblm.resources.schema" = ["*.yaml"]
+
+[tool.black]
+preview = true
+line-length = 120
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "ANN101", "ANN102",
+    "COM812",
+    "D203", "D213"
+]
+
+[tool.ruff.lint.per-file-ignores]
+"src/pwrblm/game/cli.py" = ["PLR0913", "FBT002", "B006"]
+
+[tool.mypy]
+strict = true
+python_version = "3.10"
+
+[[tool.mypy.overrides]]
+module = "jsonpickle.*"
+ignore_missing_imports = true
