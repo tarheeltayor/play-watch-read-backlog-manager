@@ -1,0 +1,41 @@
+type: object
+properties:
+  name:
+    type: string
+    minLength: 1
+  platform:
+    type: string
+    enum: ["ps5", "ps4", "ps3", "switch", "pc"]
+  metacritic_score:
+    type: number
+    minimum: 0
+    maximum: 100
+  played:
+    type: boolean
+  completed:
+    type: boolean
+  achievements:
+    type: object
+    properties:
+      complete:
+        type: boolean
+      difficulty:
+        type: number
+        minimum: 0
+        maximum: 10
+  time_to_beat:
+    type: number
+    minimum: 0
+  tags:
+    type: array
+    items:
+      type: string
+      minLength: 1
+  developer:
+    type: string
+  genres:
+    type: array
+    items:
+      type: string
+      minLength: 1
+required: ["name", "platform"]
