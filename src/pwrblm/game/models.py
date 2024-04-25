@@ -8,9 +8,10 @@ from enum import Enum, unique
 from pathlib import Path
 from typing import Any
 
-from jsonpickle import encode
 from jsonschema import Draft202012Validator
 from yaml import safe_load
+
+from pwrblm.interface import BacklogModelMixIn
 
 with Path(__file__).parent.parent.joinpath("resources", "schema", "game.schema.yaml").resolve().open(
     encoding="utf-8"
@@ -58,7 +59,7 @@ class GameAchievements:
 
 
 @dataclass
-class Game:
+class Game(BacklogModelMixIn):
     """Encapsulate a game."""
 
     # pylint: disable=too-many-instance-attributes
@@ -77,11 +78,6 @@ class Game:
         """Perform post-intialization validation."""
         GAMES_SCHEMA.validate(json.loads(self.encode()))
 
-    def edit(self, other_game: Game) -> None:
-        """Edit game by overwriting attributes."""
-        for key, value in other_game.__dict__.items():
-            setattr(self, key, value)
-
     @classmethod
     def from_json(cls, json_rep: dict[str, Any]) -> Game:
         """Create from JSON."""
@@ -98,10 +94,6 @@ class Game:
             developer=json_rep.get("developer", ""),
             genres=json_rep.get("genres", []),
         )
-
-    def encode(self, indent: int | None = None) -> str:
-        """Encode object as JSON."""
-        return str(encode(self, unpicklable=False, indent=indent))
 
     def __hash__(self) -> int:
         """Hash an object."""

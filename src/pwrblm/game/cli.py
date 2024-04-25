@@ -11,7 +11,7 @@ import typer
 from rich import print as rich_print
 
 from pwrblm.filters.base import AndFilter
-from pwrblm.game.edit import edit as edit_game
+from pwrblm.game.edit import GameEditor
 from pwrblm.game.filter import (
     AchievementCompleteFilter,
     CompletedFilter,
@@ -90,7 +90,7 @@ def add(
     ctx.obj.write()
 
 
-@game_app.command(no_args_is_help=True)
+@game_app.command()
 def choose(
     ctx: typer.Context,
     num_runs: Annotated[int, typer.Option("--num-runs", "-n", help="Number of times to pick a random item")] = 50,
@@ -151,4 +151,4 @@ def edit(
     ] = None,
 ) -> None:
     """Edit a game."""
-    edit_game(ctx, name, Platform(platform) if platform else None)
+    GameEditor.edit(ctx.obj.games, callback=ctx.obj.write, name=name, platform=Platform(platform) if platform else None)

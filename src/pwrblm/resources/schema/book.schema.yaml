@@ -1,0 +1,36 @@
+type: object
+properties:
+  title:
+    type: string
+    minLength: 1
+  pages:
+    type: integer
+    minimum: 0
+  started:
+    type: boolean
+  completed:
+    type: boolean
+  authors:
+    type: array
+    items:
+      type: string
+      minLength: 1
+  genres:
+    type: array
+    items:
+      type: string
+      minLength: 1
+  tags:
+    type: array
+    items:
+      type: string
+      minLength: 1
+  series:
+    type: object
+    properties:
+      title:
+        type: string
+      index:
+        type: integer
+        minimum: 0
+required: ["title"]
