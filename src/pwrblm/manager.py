@@ -10,6 +10,7 @@ import typer
 from jsonpickle import encode
 from rich import print as rich_print
 
+from .book.models import Book
 from .game.models import Game
 
 if TYPE_CHECKING:
@@ -23,6 +24,7 @@ class BacklogManager:
 
     path: Path
     games: list[Game] = field(default_factory=list)
+    books: list[Book] = field(default_factory=list)
 
     @classmethod
     def from_json(cls, file: Path, json_contents: dict[str, Any]) -> BacklogManager:
@@ -30,6 +32,7 @@ class BacklogManager:
         return cls(
             path=file,
             games=[Game.from_json(game) for game in json_contents.get("games", [])],
+            books=[Book.from_json(book) for book in json_contents.get("books", [])],
         )
 
     @classmethod
@@ -60,6 +63,15 @@ class BacklogManager:
                 self.games[self.games.index(game)].edit(game)
             return
         self.games.append(game)
+
+    def add_book(self, book: Book) -> None:
+        """Add book to backlog."""
+        if book in self.books:
+            rich_print("Book has already been added to backlog")
+            if typer.confirm("Overwrite details?"):
+                self.books[self.books.index(book)].edit(book)
+            return
+        self.books.append(book)
 
     def write(self) -> None:
         """Write current backlog."""
