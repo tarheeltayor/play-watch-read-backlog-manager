@@ -97,6 +97,8 @@ def choose(
     platform: Annotated[
         str | None,
         typer.Option(
+            "--platform",
+            "-p",
             help="Platform for which to pick a game",
             click_type=click.Choice(list(chain([item.value for item in Platform], ["ps"]))),
         ),
