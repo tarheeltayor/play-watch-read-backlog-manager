@@ -9,9 +9,9 @@ import typer
 from rich import print as rich_print
 
 from pwrblm.book.edit import BookEditor
-from pwrblm.book.filter import AuthorFilter, ReadFilter, SeriesFilter, TagsFilter
+from pwrblm.book.filter import create_filter
 from pwrblm.book.models import Book, Series
-from pwrblm.filters.base import AndFilter
+from pwrblm.lister import list_items
 from pwrblm.picker.model import Picker
 
 book_app = typer.Typer(no_args_is_help=True)
@@ -67,15 +67,7 @@ def choose(
     series: Annotated[str, typer.Option(help="Only choose a book in the given series")] = "",
 ) -> None:
     """Pick a book."""
-    filter_ = AndFilter[Book]()
-    filter_.add(ReadFilter(read))
-    if author:
-        filter_.add(AuthorFilter(author))
-    if tag:
-        filter_.add(TagsFilter(tag))
-    if series:
-        filter_.add(SeriesFilter(series))
-    result = Picker(num_runs, filter_).pick(ctx.obj.books)
+    result = Picker(num_runs, create_filter(read=read, author=author, tag=tag, series=series)).pick(ctx.obj.books)
     rich_print(f":book:  {result} :book:")
 
 
@@ -86,3 +78,19 @@ def edit(
 ) -> None:
     """Edit a book."""
     BookEditor.edit(ctx.obj.books, callback=ctx.obj.write, title=title)
+
+
+@book_app.command()
+def show(
+    ctx: typer.Context,
+    read: Annotated[
+        bool, typer.Option("--read/--not-read", help="Whether to choose a book which has been read before")
+    ] = False,
+    author: Annotated[str, typer.Option(help="Only choose a book with the given author")] = "",
+    tag: Annotated[
+        list[str], typer.Option(help="Only choose a book with the given tag(s) (can be passed multiple times)")
+    ] = [],
+    series: Annotated[str, typer.Option(help="Only choose a book in the given series")] = "",
+) -> None:
+    """Show books matching given conditions."""
+    list_items(ctx.obj.books, "book", filter_=create_filter(read=read, author=author, tag=tag, series=series))
