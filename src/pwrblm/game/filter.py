@@ -1,12 +1,39 @@
 """Define filters."""
 
+# pylint: disable=too-many-arguments
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from pwrblm.filters.base import Filter
+from pwrblm.filters.base import AndFilter, Filter
 from pwrblm.game.models import Game
 from pwrblm.util import is_string_close
+
+
+def create_filter(  # noqa: PLR0913
+    *,
+    platform: str | None,
+    completed: bool,
+    played: bool,
+    achievements_complete: bool,
+    tag: list[str],
+    genre: str,
+    developer: str,
+) -> Filter[Game]:
+    """Create final filter."""
+    filter_ = AndFilter[Game]()
+    if platform is not None:
+        filter_.add(PlatformFilter(platform))
+    filter_.add(CompletedFilter(completed=completed))
+    filter_.add(PlayedFilter(played=played))
+    filter_.add(AchievementCompleteFilter(achievements_complete=achievements_complete))
+    if tag:
+        filter_.add(TagsFilter(tag))
+    if genre:
+        filter_.add(GenreFilter(genre))
+    if developer:
+        filter_.add(DeveloperFilter(developer))
+    return filter_
 
 
 @dataclass

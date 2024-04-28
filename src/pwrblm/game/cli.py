@@ -4,24 +4,17 @@
 from __future__ import annotations
 
 from itertools import chain  # noqa: TCH003
-from typing import Annotated
+from typing import Annotated, Literal, cast
 
 import click  # noqa: TCH002
 import typer
 from rich import print as rich_print
 
-from pwrblm.filters.base import AndFilter
 from pwrblm.game.edit import GameEditor
-from pwrblm.game.filter import (
-    AchievementCompleteFilter,
-    CompletedFilter,
-    DeveloperFilter,
-    GenreFilter,
-    PlatformFilter,
-    PlayedFilter,
-    TagsFilter,
-)
+from pwrblm.game.filter import create_filter
 from pwrblm.game.models import Game, GameAchievements, Platform
+from pwrblm.game.sorter import create_sorting_function
+from pwrblm.lister import list_items
 from pwrblm.picker.model import Picker
 
 game_app = typer.Typer(no_args_is_help=True)
@@ -124,19 +117,18 @@ def choose(
     developer: Annotated[str, typer.Option(help="Pick a game from the given developer")] = "",
 ) -> None:
     """Pick a game."""
-    filter_ = AndFilter[Game]()
-    if platform is not None:
-        filter_.add(PlatformFilter(platform))
-    filter_.add(CompletedFilter(completed=completed))
-    filter_.add(PlayedFilter(played=played))
-    filter_.add(AchievementCompleteFilter(achievements_complete=achievements_complete))
-    if tag:
-        filter_.add(TagsFilter(tag))
-    if genre:
-        filter_.add(GenreFilter(genre))
-    if developer:
-        filter_.add(DeveloperFilter(developer))
-    result = Picker(num_runs, filter_).pick(ctx.obj.games)
+    result = Picker(
+        num_runs,
+        create_filter(
+            platform=platform,
+            completed=completed,
+            played=played,
+            achievements_complete=achievements_complete,
+            tag=tag,
+            genre=genre,
+            developer=developer,
+        ),
+    ).pick(ctx.obj.games)
     rich_print(f":video_game:  {result} :video_game:")
 
 
@@ -154,3 +146,59 @@ def edit(
 ) -> None:
     """Edit a game."""
     GameEditor.edit(ctx.obj.games, callback=ctx.obj.write, name=name, platform=Platform(platform) if platform else None)
+
+
+@game_app.command()
+def show(
+    ctx: typer.Context,
+    sort_by: Annotated[
+        str | None, typer.Option(help="Value to sort list by", click_type=click.Choice(["time_to_beat"]))
+    ] = None,
+    sort_direction: Annotated[
+        str, typer.Option(help="Direction in which to sort", click_type=click.Choice(["asc", "desc"]))
+    ] = "asc",
+    platform: Annotated[
+        str | None,
+        typer.Option(
+            "--platform",
+            "-p",
+            help="Platform for which to filter games",
+            click_type=click.Choice(list(chain([item.value for item in Platform], ["ps"]))),
+        ),
+    ] = None,
+    completed: Annotated[
+        bool, typer.Option("--completed", help="Whether to list games that have been completed before")
+    ] = False,
+    played: Annotated[
+        bool, typer.Option("--played", help="Whether to list games that have been played before")
+    ] = False,
+    achievements_complete: Annotated[
+        bool,
+        typer.Option(
+            "--achievements-complete",
+            help="Whether to list games that have had all the achievements already completed",
+        ),
+    ] = False,
+    tag: Annotated[
+        list[str],
+        typer.Option(help="Only list games with the given tag(s) (can be passed multiple times)"),
+    ] = [],
+    genre: Annotated[str, typer.Option(help="List games in the given genre")] = "",
+    developer: Annotated[str, typer.Option(help="List games from the given developer")] = "",
+) -> None:
+    """Show games matching given conditions."""
+    list_items(
+        ctx.obj.games,
+        "video_game",
+        filter_=create_filter(
+            platform=platform,
+            completed=completed,
+            played=played,
+            achievements_complete=achievements_complete,
+            tag=tag,
+            genre=genre,
+            developer=developer,
+        ),
+        sorter=create_sorting_function(sort_by),
+        sort_direction=cast(Literal["asc", "desc"], sort_direction),
+    )

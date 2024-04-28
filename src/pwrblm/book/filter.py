@@ -5,8 +5,21 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from pwrblm.book.models import Book
-from pwrblm.filters.base import Filter
+from pwrblm.filters.base import AndFilter, Filter
 from pwrblm.util import is_string_close
+
+
+def create_filter(*, read: bool, author: str, tag: list[str], series: str) -> Filter[Book]:
+    """Create filter."""
+    filter_ = AndFilter[Book]()
+    filter_.add(ReadFilter(read))
+    if author:
+        filter_.add(AuthorFilter(author))
+    if tag:
+        filter_.add(TagsFilter(tag))
+    if series:
+        filter_.add(SeriesFilter(series))
+    return filter_
 
 
 @dataclass

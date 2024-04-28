@@ -4,30 +4,30 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
 @dataclass
-class Filter(Generic[T]):
+class Filter(Generic[_T]):
     """Base class for filters."""
 
     @abstractmethod
-    def filter(self, item: T) -> bool:
+    def filter(self, item: _T) -> bool:
         """Filter item."""
         error = "Should be implemented in subclasses"
         raise NotImplementedError(error)
 
 
 @dataclass
-class AndFilter(Filter[T]):
+class AndFilter(Filter[_T]):
     """Collect filters."""
 
-    filters: list[Filter[T]] = field(default_factory=list)
+    filters: list[Filter[_T]] = field(default_factory=list)
 
-    def filter(self, item: T) -> bool:
+    def filter(self, item: _T) -> bool:
         """Fitler item."""
         return all(func.filter(item) for func in self.filters)
 
-    def add(self, filter_: Filter[T]) -> None:
+    def add(self, filter_: Filter[_T]) -> None:
         """Add a filter."""
         self.filters.append(filter_)
